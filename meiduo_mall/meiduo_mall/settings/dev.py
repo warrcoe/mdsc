@@ -54,11 +54,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-REST_FRAMEWORK = {
-    # 异常处理
-    'EXCEPTION_HANDLER': 'meiduo_mall.utils.exceptions.exception_handler',
-}
-
 
 ROOT_URLCONF = 'meiduo_mall.urls'
 
@@ -109,7 +104,14 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
-    }
+    },
+    "verify_codes": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://127.0.0.1:6379/2",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
 }
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "session"
@@ -152,6 +154,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+
+# 集成日志
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -192,4 +196,11 @@ LOGGING = {
     }
 }
 
+# 配置DRF
+REST_FRAMEWORK = {
+    # 异常处理
+    'EXCEPTION_HANDLER': 'meiduo_mall.utils.exceptions.exception_handler',
+}
+
+# 指定本项目用户认证模型类是谁
 AUTH_USER_MODEL = 'users.User'

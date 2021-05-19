@@ -15,8 +15,15 @@ var vm = new Vue({
 		mobile: '', 
 		image_code: '',
 		sms_code: '',
-		allow: false
+		allow: false,
+		image_code_id:'',  // 图片唯一标识
+		image_code_url:'', // img标签获取图片验证码的url
+
 	},
+	mounted:function () {
+		this.generate_image_code()
+    },
+
 	methods: {
 		check_username: function (){
 			var len = this.username.length;
@@ -78,6 +85,26 @@ var vm = new Vue({
 			this.check_phone();
 			this.check_sms_code();
 			this.check_allow();
-		}
+		},
+		// 生成uuid
+		generate_uuid:function () {
+			var d = new Date().getTime();
+			if(window.performance && typeof window.performance.now === "function"){
+				d += performance.now(); //use high-precision timer if available
+			}
+        	var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+				var r = (d + Math.random()*16)%16 | 0;
+				d = Math.floor(d/16);
+				return (c =='x' ? r : (r&0x3|0x8)).toString(16);
+			});
+        	return uuid;
+        },
+		//	索取图片验证码方法
+		generate_image_code:function () {
+			//生成一个uudi编码
+			this.image_code_id = this.generate_uuid();
+			//设置页面中图片验证码img标签的src属性
+			this.image_code_url = 'http://127.0.0.1:8000' + '/image_codes/' + this.image_code_id + '/';
+        },
 	}
 });
