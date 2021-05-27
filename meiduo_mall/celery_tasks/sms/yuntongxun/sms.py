@@ -1,8 +1,8 @@
 # -*- coding:utf-8 -*-
 
-from meiduo_mall.libs.yuntongxun.CCPRestSDK import REST
+# from libs.yuntongxun.CCPRestSDK import REST
 # celery 报错点：导包路径没有改过来
-# from celery_tasks.sms.yuntongxun.CCPRestSDK import REST
+from celery_tasks.sms.yuntongxun.CCPRestSDK import REST
 
 
 # 说明：主账号，登陆云通讯网站后，可在"控制台-应用"中看到开发者主账号ACCOUNT SID

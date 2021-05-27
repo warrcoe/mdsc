@@ -26,7 +26,7 @@ class ImageCodeCheckSerializer(serializers.Serializer):
         try:
             redis_conn.delete('img_%s' % image_code_id)
         except RedisError as e:
-            from utils.exceptions import logger
+            from meiduo_mall.utils.exceptions import logger
             logger.error(e)
         # 对比图片验证码
         real_image_code_text = real_image_code_text.decode()

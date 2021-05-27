@@ -1,4 +1,3 @@
-import random
 
 from django.shortcuts import render
 from rest_framework.generics import GenericAPIView
@@ -6,14 +5,20 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import HttpResponse
 
-from apps.verifications import serializers
-from libs.captcha.captcha import captcha
+from verifications import serializers
+from meiduo_mall.libs.captcha.captcha import captcha
 from django_redis import get_redis_connection
 
-from libs.yuntongxun.sms import CCP
+from meiduo_mall.libs.yuntongxun.sms import CCP
 from . import constants
+import random
+import logging
+from celery_tasks.sms.tasks import send_sms_code
 # Create your views here.
 
+
+# 日志记录器
+logger = logging.getLogger('django')
 
 class ImageCodeView(APIView):
     '''提供图片验证码'''
@@ -34,6 +39,7 @@ class SMSCodeView(GenericAPIView): #GenericAPIView校验参数棒棒的！
         3、业务处理
         4、返回结果
         '''
+        # 指定序列化器
         serializer_class = serializers.ImageCodeCheckSerializer
 
         # 1、接收参数 mobile image_code_id text
@@ -45,18 +51,24 @@ class SMSCodeView(GenericAPIView): #GenericAPIView校验参数棒棒的！
         # 2、校验参数
             # 生成短信验证码
             sms_code = '%06d' % random.randint(0, 999999)
-            print(sms_code)
-            # 生成管道
+            logger.debug(sms_code)
+            # 存储短信到redis数据库
+            # 生成redis管道，将多个redis指令集成到一起执行，减少访问redis数据库次数
             redis_conn = get_redis_connection('verify_codes')
             pl = redis_conn.pipeline()
             pl.setex('sms_' + mobile, constants.SMS_CODE_REDIS_EXPIRES, sms_code)
+            # 记录发送短信的标记
             pl.setex('send_flag_' + mobile,constants.SEND_SMS_CODE_INTERVAL,1)
+            # 开启执行
             pl.execute()
         # 3、业务处理
             # 发送短信
-            ccp = CCP().send_template_sms(mobile, [sms_code, constants.SMS_CODE_REDIS_EXPIRES//60], constants.SMS_CODE_TEMP_ID)
+            # ccp = CCP().send_template_sms(mobile, [sms_code, constants.SMS_CODE_REDIS_EXPIRES//60], constants.SMS_CODE_TEMP_ID)
+
+            # 执行异步任务：delay将延迟异步任务发送到redis
+            send_sms_code.delay(mobile, sms_code)
         # 4、返回结果
-            return Response({'message' : 'OK'})
+            return Response({'message': 'OK'})
 
 
 
