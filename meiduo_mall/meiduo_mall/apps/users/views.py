@@ -17,3 +17,16 @@ class UsernameCountView(APIView):
             'count':count
         }
         return Response(data)
+
+# 手机号验证
+class MobileCountView(APIView):
+    '''
+    手机号验证
+    '''
+    def get(self, request, mobile):
+        count = User.objects.filter(mobile=mobile).count()
+        data = {
+            'mobile': mobile,
+            'count': count
+        }
+        return Response(data)
