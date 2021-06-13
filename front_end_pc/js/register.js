@@ -24,6 +24,7 @@ var vm = new Vue({
 		sms_code_tip:'获取短信验证码',//短信验证码提示信息
 		error_name_message:'',//姓名错误提示
         error_phone_message:'',//手机号错误提示
+        error_sms_code_message:''//手机验证码错误提示
 
 	},
 	mounted:function () {
@@ -120,15 +121,6 @@ var vm = new Vue({
 				this.error_allow = false;
 			}
 		},
-		// 注册
-		on_submit: function(){
-			this.check_username();
-			this.check_pwd();
-			this.check_cpwd();
-			this.check_phone();
-			this.check_sms_code();
-			this.check_allow();
-		},
 		// 生成uuid
 		generate_uuid:function () {
 			var d = new Date().getTime();
@@ -200,6 +192,45 @@ var vm = new Vue({
                     this.sending_flag = false;
                 })
         },
+
+        // 注册
+        on_submit: function(){
+            this.check_username();
+            this.check_pwd();
+            this.check_cpwd();
+            this.check_phone();
+            this.check_sms_code();
+            this.check_allow();
+
+            if(this.error_name == false && this.error_password == false && this.error_check_password == false
+                && this.error_phone == false && this.error_sms_code == false && this.error_allow == false) {
+                axios.post(this.host + '/users/', {
+                        username: this.username,
+                        password: this.password,
+                        password2: this.password2,
+                        mobile: this.mobile,
+                        sms_code: this.sms_code,
+                        allow: this.allow.toString()
+                    }, {
+                        responseType: 'json'
+                    })
+                    .then(response => {
+                        location.href = '/index.html';
+                    })
+                    .catch(error=> {
+                        if (error.response.status == 400) {
+                            if ('non_field_errors' in error.response.data) {
+                                this.error_sms_code_message = error.response.data.non_field_errors[0];
+                            } else {
+                                this.error_sms_code_message = '手机验证码有误';
+                            }
+                            this.error_sms_code = true;
+                        } else {
+                            console.log(error.response.data);
+                        }
+                    })
+            }
+        }
 
 	}
 });
